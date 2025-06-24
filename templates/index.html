@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Alert placeholder -->
+<div id="alertPlaceholder" class="w-100 mt-2"></div>
+<!-- content-->
+<div class="container mt-5">
+  <div class="text-center">
+    <h1 class="display-4 text-primary">Welcome to HealthIQ</h1>
+    <p class="lead">A smart and secure platform to manage lab reports, patient records, and health data efficiently.</p>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-4">
+      <h4><i class="fas fa-vials text-success"></i> Automated Lab Reports</h4>
+      <p>Scan and extract data from diagnostic lab reports using intelligent OCR and AI models.</p>
+    </div>
+    <div class="col-md-4">
+      <h4><i class="fas fa-user-md text-info"></i> Patient Record Management</h4>
+      <p>Securely store and manage patient history, allergies, medications, and test results in one place.</p>
+    </div>
+    <div class="col-md-4">
+      <h4><i class="fas fa-chart-line text-warning"></i> Health Analytics</h4>
+      <p>Visualize trends with charts and reports for better diagnosis and decision-making.</p>
+    </div>
+  </div>
+    {% if 'username' not in session%}
+  <div class="text-center mt-5">
+    <p class="text-muted">Access restricted to authorized medical professionals only.</p>
+    <button class="btn btn-primary btn-lg">Login to Continue</button>
+  </div>
+  {% endif%}
+</div>
+{% endblock %}
+  
+
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+  const username = document.getElementById("uname").value.trim();
+  const password = document.getElementById("pwd").value.trim();
+  const alertDiv = document.getElementById("alertPlaceholder");
+
+  if (!username || !password) {
+    e.preventDefault(); // Stop form from submitting
+
+    alertDiv.innerHTML = `
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        Both Username and Password are required.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    `;
+  }
+});
+</script>

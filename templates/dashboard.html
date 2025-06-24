@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid mt-4 with-footer-buffer">
+  <!-- <h2 class="mb-4 text-center">Employee Health Profiles</h2> -->
+
+  <form method="GET" action=""  id="seachForm" class="form-inline mb-3">
+  <input type="text" name="q" class="form-control form-control-sm mr-2" placeholder="Employee name or number"
+      id="searchbox"   value="{{ request.args.get('q', '') }}">
+  <button type="submit"  class="btn btn-sm btn-primary mr-2">Search</button>
+  <button type="button" class="btn btn-sm btn-secondary" onclick="clearSearch()">Clear</button>
+</form>
+
+
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover table-striped">
+      <thead class="thead-dark text-center">
+        <tr>
+          <th colspan="6">Basic Details</th>
+          <th colspan="4">Report Status</th>
+        </tr>
+        <tr class="bg-light">
+          <th>#</th>
+          <th>Name</th>
+          <th>Emp. No</th>
+          <th>Gender</th>
+          <th>DOB</th>
+          <th>Blood Group</th>
+          <th>Lipid Profile</th>
+          <th>Glucose</th>
+          <th>Urine</th>
+          <th>Stool</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if employees  %}
+        {% for emp in employees %}
+        <tr>
+          <td class="text-center">{{ (page - 1) * per_page + loop.index }}</td>
+          <td><a class="text-dark text-decoration-none" href="{{url_for('emp_dashboard.emp_dashboard',ohc_id=emp.ohc_id)}}">{{ emp.employee_name }}</a> </td>
+          <td>{{ emp.employee_number }}</td>
+          <td class="text-center">{{ emp.gender }}</td>
+          <td class="text-center">{{ emp.date_of_birth }}</td>
+          <td class="text-center">{{ emp.blood_group }}</td>
+          <td class="text-center">
+            {% if emp.lipid_profile %}
+              <i class="fas fa-check-circle text-success"></i>
+            {% else %}
+              <i class="fas fa-times-circle text-danger"></i>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if emp.glucose %}
+              <i class="fas fa-check-circle text-success"></i>
+            {% else %}
+              <i class="fas fa-times-circle text-danger"></i>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if emp.urine %}
+             <i class="fas fa-check-circle text-success"></i>
+            {% else %}
+             <i class="fas fa-times-circle text-danger"></i>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if emp.stool %}
+             <i class="fas fa-check-circle text-success"></i>
+            {% else %}
+              <i class="fas fa-times-circle text-danger"></i>
+            {% endif %}
+          </td> 
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="10" class="text-center text-muted">No Records found</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center mt-0">
+    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+      <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
+    </li>
+    {% for p in range(1, total_pages + 1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+      </li>
+    {% endfor %}
+    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+      <a class="page-link" href="?page={{ page + 1 }}">Next</a>
+    </li>
+  </ul>
+</nav>
+</div>
+
+<style>
+    .report-icon {
+      font-size: 1.2rem;
+    }
+    .badge-header {
+      font-size: 1rem;
+      font-weight: bold;
+      background-color: #f8f9fa;
+    }
+    th, td {
+      vertical-align: middle !important;
+    }
+
+    .table-responsive {
+    max-height: 500px; /* Adjust as needed */
+    overflow-y: auto;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background-color: #343a40; /* Matches .thead-dark */
+    color: white;
+    z-index: 2;
+  }
+
+  thead th[colspan] {
+    top: 0;
+    z-index: 3; /* Ensure it stacks above row 2 */
+  }
+
+  /* Optional: Fix second header row (bg-light) below .thead-dark */
+  thead tr:nth-child(2) th {
+    top: 38px; /* Adjust based on the first row's height */
+    background-color: #f8f9fa;
+    color: #000;
+    z-index: 1;
+  }
+  .with-footer-buffer {
+    padding-bottom: 30px; /* Adjust if footer height changes */
+  }
+  </style>
+{% endblock %}
+
