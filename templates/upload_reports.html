@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+{% block content %}
+ <style>
+    .section {
+      display: none;
+    }
+  </style>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<div class="container mt-2">
+  <h3 class="mb-2">Verify Employee and Upload Reports</h3>
+
+   <div class="row">
+    <!-- Step 1: Left column - Verify Form -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-primary text-white">Employee ID & Report date</div>
+        <div class="card-body">   
+          <form id="verifyForm" method="POST" class="form-row mb-0">
+            <div class="form-group col-md-6 mb-0">
+                <input type="date" class="form-control" id="report_date" name="report_date" required >
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                <input type="text" class="form-control" id="empId" name="emp_id" required placeholder="Employee ID">
+            </div>
+            <div class="form-group col-md-3 mb-0">
+                <button type="submit" class="btn btn-primary btn-block">Verify</button>
+            </div>
+        </form>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- Step 2: Right column - Upload Section -->
+    <div class="col-md-6">
+      <div id="uploadSection" class="section">
+        <div class="card">
+          <div class="card-header bg-primary text-white">Upload PDF Report for <span id="empName"></span></div>
+          <div class="card-body">
+             <form id="uploadForm" method="POST">
+             <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">               
+                            <input type="file" class="form-control-file" id="reportFile" name="report" accept=".pdf" >
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                    <button type="submit" class="btn btn-success">Upload & Extract</button>
+                     </div>
+                </div>
+            </form>    
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- /.row -->
+</div>
+
+
+    <!--Loader-->
+<div id="loader" style="display:none; position: fixed; top: 0; left: 0; 
+     width: 100%; height: 100%; background-color: rgba(255,255,255,0.8); 
+     z-index: 9999; text-align: center; padding-top: 200px;">
+  <div class="spinner-border text-primary" role="status"></div>
+  <p class="mt-3 font-weight-bold">Processing, please wait...</p>
+</div>
+
+
+
+
+  <!-- Step 3: Display tabs with extracted data -->
+<div class="container mt-5">
+<div id="resultTabs" class="section ">
+  <!-- Tab Navigation -->
+  <ul class="nav nav-tabs" id="reportTab" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link active" id="lipid-tab" data-toggle="tab" href="#lipid" role="tab">Lipid</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" id="glucose-tab" data-toggle="tab" href="#glucose" role="tab">Glucose</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" id="thyroid-tab" data-toggle="tab" href="#thyroid" role="tab">Thyroid</a>
+    </li>
+     <li class="nav-item">
+      <a class="nav-link" id="vittal-tab" data-toggle="tab" href="#vittal" role="tab">Vital</a>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content border border-top-0 p-4 bg-white" id="reportTabContent">
+
+    <!-- Lipid -->
+    <div class="tab-pane fade show active" id="lipid" role="tabpanel">
+      <div class="mb-3 border-left border-info pl-3">
+        <h6 class="text-info">Lipid Panel</h6>
+        <form  id="lipid_save"  method="POST"  >
+        <div class="form-row"> 
+          <div class="form-group col-md-4">
+            <label>Triglycerides</label>
+            <input type="text" class="form-control" name="triglycerides" value="">
+          </div>         
+          <div class="form-group col-md-4">
+            <label>Total Cholesterol</label>
+            <input type="text" class="form-control" name="total_cholesterol" value="">
+          </div>
+          <div class="form-group col-md-4">
+            <label>HDL Cholesterol</label>
+            <input type="text" class="form-control" name="hdl_cholesterol" value="">
+          </div>
+          <div class="form-group col-md-4">
+            <label>LDL Cholesterol</label>
+            <input type="text" class="form-control" name="ldl_cholesterol" value="">
+          </div>
+          <div class="form-group col-md-4">
+            <label>VLDL</label>
+            <input type="text" class="form-control" name="vldl" value="">             
+          </div>
+          <div class="form-group col-md-4">
+            <label>&nbsp;</label>
+            <input type="hidden" class="form-control" name="file_path" value="uploads/040725150918.pdf">
+            <input type="hidden" class="form-control" name="report_name" value="Lipid Profile">   
+                 
+             <input type="submit"  class="btn btn-primary  mt-2"  value="Save">
+          </div>       
+        </div>
+        </form>  
+      </div>
+    </div>
+
+    <!-- Glucose -->
+    <div class="tab-pane fade" id="glucose" role="tabpanel">
+      <div class="mb-3 border-left border-success pl-3">
+        <h6 class="text-success">Glucose Levels</h6>
+        <form  id="glucose_save"  method="POST"  >
+        <div class="form-row">
+          <div class="form-group col-md-3">
+            <label>Fasting</label>
+            <input type="text" class="form-control" name="fasting_blood_glucose" value="">
+          </div>
+          <div class="form-group col-md-3">
+            <label>Post prandial</label>
+            <input type="text" class="form-control" name="post_prandial_blood_glucose" value="">
+          </div>
+          <div class="form-group col-md-3">
+            <label>Urine Sugar Fasting</label>
+            <input type="text" class="form-control" name="urine_sugar_fasting" value="">
+          </div>
+          <div class="form-group col-md-3">
+            <label>Urine Sugar Postprandial</label>
+            <input type="text" class="form-control" name="urine_sugar_postprandial" value="">
+          </div>
+          <div class="form-group col-md-3">  
+             <input type="hidden" class="form-control" name="file_path" value="uploads/040725150918.pdf">
+            <input type="hidden" class="form-control" name="report_name" value="glucose fasting  postprandial">           
+             <input type="submit" class="btn btn-primary"  value="Save">
+          </div>
+        </div>
+      </form>
+      </div>
+    </div>
+
+    <!-- Thyroid -->
+    <div class="tab-pane fade" id="thyroid" role="tabpanel">
+      <div class="mb-3 border-left border-warning pl-3">
+        <h6 class="text-warning">Thyroid Panel</h6>
+        <form  id="thyroid_save"  method="POST"  >
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>Total T3 (Tri-iodothyronine)</label>
+            <input type="text" class="form-control" name="total_T3_Tri_iodothyronine" value="">
+          </div>
+          <div class="form-group col-md-4">
+            <label>Total T4 (Thyroxine)</label>
+            <input type="text" class="form-control" name="total_T4_Thyroxine" value="">
+          </div>
+          <div class="form-group col-md-4">
+            <label>Ultrasensitive TSH,Serum</label>
+            <input type="text" class="form-control" name="ultrasensitive_TSH_serum" value="">
+          </div>
+          <div class="form-group col-md-3">  
+             <input type="hidden" class="form-control" name="file_path" value="uploads/040725150918.pdf">
+            <input type="hidden" class="form-control" name="report_name" value="Thyroid Function Test">          
+             <input type="submit" class="btn btn-primary"  value="Save">
+          </div>
+        </div>
+      </form>
+      </div>
+    </div>
+
+    <!-- Vittal -->
+    <div class="tab-pane fade" id="vittal" role="tabpanel">
+      <div class="mb-3 border-left border-warning pl-3">
+        <h6 class="text-warning">Vital Panel</h6>
+        <form  id="vittal_save"  method="POST"  >
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>Post Prandial Sugar</label>
+            <input type="text" class="form-control" name="glucose_random" value="">
+          </div>
+          <div class="form-group col-md-4">
+            <label>Fasting Sugar</label>
+            <input type="text" class="form-control" name="glucose_fasting" value="">
+          </div>
+          <div class="form-group col-md-4">
+            <label>Total Cholesterol</label>
+            <input type="text" class="form-control" name="total_cholesterol" value="">
+          </div>
+          <div class="form-group col-md-4">
+            <label>Weight</label>
+            <input type="text" class="form-control" name="weight" value="" required>
+          </div>
+          <div class="form-group col-md-4">
+            <label>BMI</label>
+            <input type="text" class="form-control" name="bmi" value="" required>
+          </div>
+          <div class="form-group col-md-3">  
+             <input type="hidden" class="form-control" name="file_path" value="">
+            <input type="hidden" class="form-control" name="report_name" value="Vital Results">          
+             <input type="submit" class="btn btn-primary"  value="Save">
+          </div>
+        </div>
+      </form>
+      </div>
+    </div> 
+
+  </div>
+</div>
+</div>
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+
+<script>
+
+  //save lipid
+   $('#lipid_save').on('submit', function (e) {
+      //alert('raj')
+      e.preventDefault();
+      let formData = {};
+      $(this).serializeArray().forEach(function (field) {
+          formData[field.name] = field.value;
+      });
+      formData['table_name'] = 'lipid_profile_results'; 
+      formData['empid'] = $('#empId').val(); 
+      formData['report_date'] = $('#report_date').val(); 
+      console.log(formData);  
+      $.post('/save_reports', formData, function(response) {
+        console.log(response);
+        alert(response.message)
+        if (response.status === 'success')
+           $('#lipid_save :input').prop('disabled', true);
+      });
+
+     
+
+   });
+
+ //save glucose
+   $('#glucose_save').on('submit', function (e) {
+      //alert('raj')
+      e.preventDefault();
+      let formData = {};
+      $(this).serializeArray().forEach(function (field) {
+          formData[field.name] = field.value;
+      });
+      formData['table_name'] = 'glucose_results'; 
+      formData['empid'] = $('#empId').val(); 
+      formData['report_date'] = $('#report_date').val(); 
+      console.log(formData);  
+      $.post('/save_reports', formData, function(response) {
+        console.log(response);
+        alert(response.message)
+        if (response.status === 'success')
+           $('#glucose_save :input').prop('disabled', true);
+      });
+
+     
+
+   });
+
+
+   //save glucose
+   $('#thyroid_save').on('submit', function (e) {
+      //alert('raj')
+      e.preventDefault();
+      let formData = {};
+      $(this).serializeArray().forEach(function (field) {
+          formData[field.name] = field.value;
+      });
+      formData['table_name'] = 'thyroid_results'; 
+      formData['empid'] = $('#empId').val(); 
+      formData['report_date'] = $('#report_date').val(); 
+      console.log(formData);  
+      $.post('/save_reports', formData, function(response) {
+        console.log(response);
+        alert(response.message)
+        if (response.status === 'success')
+           $('#thyroid_save :input').prop('disabled', true);
+      });
+
+     
+
+   });
+
+
+   //save glucose
+   $('#vittal_save').on('submit', function (e) {
+      //alert('raj')
+      e.preventDefault();
+      let formData = {};
+      $(this).serializeArray().forEach(function (field) {
+          formData[field.name] = field.value;
+      });
+      formData['table_name'] = 'vital_results'; 
+      formData['empid'] = $('#empId').val(); 
+      formData['report_date'] = $('#report_date').val(); 
+      console.log(formData);  
+      $.post('/save_reports', formData, function(response) {
+        console.log(response);
+        alert(response.message)
+        if (response.status === 'success')
+           $('#vittal_save :input').prop('disabled', true);
+      });
+
+     
+
+   });
+  
+
+
+
+
+
+  // Simulate employee verification
+  $('#verifyForm').on('submit', function (e) {
+  e.preventDefault();
+  const empId = $('#empId').val().trim();
+
+  if (empId === "") return;
+    
+  // Make AJAX call to Flask
+  $.ajax({ 
+    url: '/verify_employee',
+    method: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({ emp_id: empId }),
+    success: function (response) {
+        
+      if (response.status === 'success') {
+        $('#empName').text(response.employee_name);
+        $('#uploadSection').slideDown();
+      } else {
+        alert('Employee not found');
+      }
+    },
+    error: function () {
+      alert('Server error. Please try again.');
+    }
+  });
+});
+
+  // Simulate file upload and OCR extract
+  $('#uploadForm').on('submit', function (e) {
+    e.preventDefault();
+
+    let formData = new FormData();
+    let fileInput = $('#reportFile')[0].files[0];
+    if (!fileInput) {
+        alert('Please select a file.');
+        return;
+    }
+
+  formData.append('report', fileInput);
+    $('#loader').show();
+    $.ajax({ 
+        url: '/upload_employee_report',
+        type: 'POST',
+        data: formData,
+        processData: false,  // prevent jQuery from converting the data
+        contentType: false,  // prevent jQuery from setting contentType
+        success: function (response) {
+           // console.log(response)
+        if (response.status === 'success') {
+            $('#loader').hide();
+            let glucoseData = response.alldata[0];
+            let thyroidData = response.alldata[1];
+            let lipiddata = response.alldata[2];  // extract the object from the array
+            //setTimeout(() => {
+                 $('#glucose input[name="fasting_blood_glucose"]').val(glucoseData.fasting_blood_glucose);
+                 $('#glucose input[name="post_prandial_blood_glucose"]').val(glucoseData.post_prandial_blood_glucose);
+                 $('#glucose input[name="urine_sugar_fasting"]').val(glucoseData.urine_sugar_fasting);
+                 $('#glucose input[name="urine_sugar_postprandial"]').val(glucoseData.urine_sugar_postprandial);
+                 $('#glucose input[name="file_path"]').val(glucoseData.output_pdf_path);                 
+                 $('#thyroid input[name="total_T3_Tri_iodothyronine"]').val(thyroidData.total_T3_Tri_iodothyronine);
+                 $('#thyroid input[name="total_T4_Thyroxine"]').val(thyroidData.total_T4_Thyroxine);
+                 $('#thyroid input[name="ultrasensitive_TSH_serum"]').val(thyroidData.ultrasensitive_TSH_serum);
+                 $('#thyroid input[name="file_path"]').val(thyroidData.output_pdf_path); 
+                 $('#lipid input[name="triglycerides"]').val(lipiddata.triglycerides);
+                 $('#lipid input[name="total_cholesterol"]').val(lipiddata.total_cholesterol);
+                 $('#lipid input[name="hdl_cholesterol"]').val(lipiddata.hdl_cholesterol);
+                 $('#lipid input[name="ldl_cholesterol"]').val(lipiddata.ldl_cholesterol);
+                 $('#lipid input[name="vldl"]').val(lipiddata.vldl);
+                 $('#lipid input[name="file_path"]').val(lipiddata.output_pdf_path); 
+                 $('#vittal input[name="glucose_random"]').val(glucoseData.post_prandial_blood_glucose);
+                 $('#vittal input[name="glucose_fasting"]').val(glucoseData.fasting_blood_glucose);
+                 $('#vittal input[name="total_cholesterol"]').val(lipiddata.total_cholesterol);
+              //      }, 1000); // delay to allow DOM update
+            $('#uploadSection').slideDown();
+        } else {
+            alert('Employee not found');
+        }
+        },
+        error: function () {
+        alert('Server error. Please try again.');
+        }
+     });
+
+
+
+
+    $('#resultTabs').slideDown();  // Simulated result section
+  });
+</script>
+
+
+{%endblock%}

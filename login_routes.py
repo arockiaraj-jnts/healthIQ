@@ -12,7 +12,7 @@ def login():
         result=getLoginDetails(username,password)
         if result:
             session['username']=result[0]
-            flash("Login Successfull",'success') 
+            #flash("Login Successfull",'success') 
             return  redirect(url_for('dashboard.dashboard'))  
         else:
             return redirect(url_for('home_page'))  
@@ -22,6 +22,6 @@ logout_bp=Blueprint('logout',__name__, url_prefix='/logout')
 @logout_bp.route('/')
 def logout():
     session.clear()
-    flash("You have loggedout","info")
+    #flash("You have loggedout","info")
     return redirect(url_for('home_page'))  
     

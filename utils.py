@@ -135,6 +135,22 @@ def extract_stool_routine_data(ocr_text,report_name):
     saveStooldata(report_name,data,test_results)
     return json.dumps(output, indent=4) 
 
+def extract_thyroid_data(ocr_text,report_name):
+    result = {}
+    # Manually extract lines containing test data
+    pattern = re.compile(r'^(Total T3.*?|Total T4.*?|Ultrasensitive TSH.*?)[>:]\s*([><]?\s*\d+\.?\d*)')
+
+    for line in ocr_text.splitlines():
+        match = pattern.search(line)
+        if match:
+            test_name = match.group(1).strip()
+            value = match.group(2).strip()
+            result[test_name] = value
+
+    # Print final dictionary
+    print(result)
+    
+
 def extract_lipid_profile_data(ocr_text,report_name):  
     
     patient = {}

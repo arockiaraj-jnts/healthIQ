@@ -22,7 +22,7 @@ def dashboard():
     employeeDet,page,total_pages=getDashboardData(page,PER_PAGE,last_year,search_query)     
     #if employeeDet:
     return render_template('dashboard.html',username=session['username'],
-                               employees=employeeDet,page=page,total_pages=total_pages,per_page=PER_PAGE)
+                               employees=employeeDet,page=page,total_pages=total_pages,per_page=PER_PAGE,request=request)
     
 emp_dashboard_bp=Blueprint('emp_dashboard',__name__, url_prefix='/emp_dashboard')
 @emp_dashboard_bp.route('/<ohc_id>', )

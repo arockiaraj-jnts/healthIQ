@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{%block content%}
+
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="container mt-4 mb-5">
+  <form action="/add_new_employee" method="POST">
+    <h4 class="mb-4">Add New Employee</h4>
+
+    <!-- Personal Information -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">Personal Information</div>
+      <div class="card-body row">
+        <!-- <div class="form-group col-md-4">
+          <label>OHC ID</label>
+          <input type="text" class="form-control" name="ohc_id">
+        </div>  -->
+        <div class="form-group col-md-4">
+          <label>Employee Number</label>
+          <input type="text" required class="form-control" name="employee_number">
+          <small class="form-text text-muted">* Must be unique</small>
+        </div>
+        <div class="form-group col-md-4">
+          <label>Employee Name</label>
+          <input type="text"  required class="form-control" name="employee_name">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Gender</label>
+          <select class="form-control" name="gender">
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">
+          <label>Date of Birth</label>
+          <input required type="date" class="form-control" name="date_of_birth">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Blood Group</label>
+          <select class="form-control" name="blood_group">
+            <!-- <option>Select</option> -->
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">
+          <label>Marital Status</label>
+          <select class="form-control" name="marital_status">
+            <option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">
+          <label>Nationality</label>
+          <input type="text" class="form-control" name="nationality" value="Indian">
+        </div>
+        <!-- <div class="form-group col-md-4">
+          <label>Profile Photo</label>
+          <input type="file" class="form-control-file" name="profile_photo">
+        </div> -->
+      </div>
+    </div>
+
+    <!-- Contact Details -->
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">Contact Details</div>
+      <div class="card-body row">
+        <div class="form-group col-md-4">
+          <label>Phone Number</label>
+         <input type="tel" class="form-control" name="phone_number"
+       pattern="[0-9]{10}" maxlength="10"
+       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+       placeholder="Enter 10-digit number" required>
+        <small class="form-text text-muted">* Must be unique</small>  
+        </div>
+        <div class="form-group col-md-4">
+          <label>Alternate Phone</label>
+          <input type="tel" class="form-control" name="alternate_phone_number" pattern="[0-9]{10}" maxlength="10"
+       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+       placeholder="Enter 10-digit number" >
+        </div>
+        <div class="form-group col-md-4">
+          <label>Email Address</label>
+          <input type="email" class="form-control" name="email_address">
+        </div>
+        <div class="form-group col-md-6">
+          <label>Current Address</label>
+          <textarea required class="form-control" name="current_address" rows="2"></textarea>
+        </div>
+        <div class="form-group col-md-6">
+          <label>Permanent Address</label>
+          <textarea class="form-control" name="permanent_address" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emergency Contact -->
+    <div class="card mb-4">
+      <div class="card-header bg-warning">Emergency Contact</div>
+      <div class="card-body row">
+        <div class="form-group col-md-4">
+          <label>Contact Name</label>
+          <input type="text" class="form-control" name="emergency_contact_name">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Relationship</label>
+          <input type="text" class="form-control" name="emergency_contact_relationship">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Contact Number</label>
+          <input type="text" class="form-control" name="emergency_contact_number">
+        </div>
+      </div>
+    </div>
+
+    <!-- Medical Info -->
+    <div class="card mb-4">
+      <div class="card-header bg-danger text-white">Medical Information</div>
+      <div class="card-body row">
+        <div class="form-group col-md-4">
+          <label>Known Allergies</label>
+          <textarea class="form-control" name="known_allergies" rows="2"></textarea>
+        </div>
+        <div class="form-group col-md-4">
+          <label>Current Medications</label>
+          <textarea class="form-control" name="current_medications" rows="2"></textarea>
+        </div>
+        <div class="form-group col-md-4">
+          <label>Chronic Conditions</label>
+          <textarea class="form-control" name="chronic_conditions" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lifestyle Info -->
+    <div class="card mb-4">
+      <div class="card-header bg-secondary text-white">Lifestyle Information</div>
+      <div class="card-body row">
+        <div class="form-group col-md-3">
+          <label>Smoking</label>
+          <select class="form-control" name="smoking_status">
+            <!-- <option selected>Select</option> -->
+            <option>No</option><option>Yes</option><option>Former</option>
+          </select>
+        </div>
+        <div class="form-group col-md-3">
+          <label>Alcohol</label>
+          <select class="form-control" name="alcohol_consumption">
+            <!-- <option>Select</option> -->
+            <option>No</option><option>Yes</option><option>Occasionally</option>
+          </select>
+        </div>
+        <div class="form-group col-md-3">
+          <label>Exercise</label>
+          <select class="form-control" name="exercise_frequency">
+            <option>Daily</option><option>Weekly</option><option>Rarely</option><option>Never</option>
+          </select>
+        </div>
+        <div class="form-group col-md-3">
+          <label>Dietary Preferences</label>
+          <input type="text" class="form-control" name="dietary_preferences">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Occupation</label>
+          <input type="text" class="form-control" name="occupation">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Family History</label>
+          <textarea class="form-control" name="family_history" rows="2"></textarea>
+        </div>
+        <div class="form-group col-md-4">
+          <label>Hereditary Conditions</label>
+          <textarea class="form-control" name="hereditary_conditions" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visit Info -->
+    <div class="card mb-4">
+      <div class="card-header bg-dark text-white">Doctor Visit</div>
+      <div class="card-body row">
+        <div class="form-group col-md-4">
+          <label>Last Visit Date</label>
+          <input type="date" class="form-control" name="last_visit_date">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Assigned Doctor</label>
+          <input type="text" class="form-control" name="assigned_doctor">
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-success btn-block">Save Profile</button>
+  </form>
+</div>
+
+{%endblock %}

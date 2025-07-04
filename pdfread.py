@@ -3,7 +3,7 @@ from pdf2image import convert_from_path
 from PIL import Image
 import cv2
 import os
-from utils import extract_urine_routine_data,extract_stool_routine_data,extract_lipid_profile_data,extract_glucose_data
+from utils import extract_urine_routine_data,extract_stool_routine_data,extract_lipid_profile_data,extract_glucose_data,extract_thyroid_data
 
 
 # === Step 1: Convert PDF to Images ===
@@ -38,6 +38,7 @@ def extract_text_with_tesseract(image_path):
     "Stool Routine": lambda: extract_stool_routine_data(text.strip(), report_name),
     "Lipid Profile": lambda: extract_lipid_profile_data(text.strip(), report_name),
     "glucose fasting  postprandial": lambda: extract_glucose_data(text.strip(), report_name),
+    "Thyroid Function Test": lambda: extract_thyroid_data(text.strip(), report_name),
     }
 
     json_output = report_handlers.get(report_name, lambda: {"error": "Unknown report"})()
@@ -56,7 +57,7 @@ def process_pdf(pdf_path):
         #if image_path!='page_7.png':
          #   continue
         print(f"\n--- Processing {image_path} ---")
-        ###check_resolution(image_path)
+        check_resolution(image_path)
         #check_for_hand_drawn_lines(image_path)
         ###extract_text_with_tesseract(image_path)
         ###os.remove(image_path)  # Cleanup after processing
@@ -65,7 +66,7 @@ def process_pdf(pdf_path):
 def get_report_name(ocr_text):
     known_reports = [
         "Urine Routine", "Complete Blood Count", "CBC", "Liver Function Test",
-        "Thyroid Profile", "Blood Sugar", "Lipid Profile", "Kidney Function Test",
+        "Thyroid Function Test", "Blood Sugar", "Lipid Profile", "Kidney Function Test",
         "Urine Culture", "Stool Routine", "Hematology", "Blood Test", "glucose fasting & postprandial"
     ]
     #, "glucose fasting & postprandial"
@@ -119,7 +120,7 @@ def check_for_hand_drawn_lines(image):
 
 # === Entry Point ===
 if __name__ == "__main__":
-    pdf_file_path = "samples/doc5.pdf"  # Replace with your actual PDF path
+    pdf_file_path = "samples/doc1.pdf"  # Replace with your actual PDF path
     #pdf_file_path = "samples/Doc_1614.pdf" 
     #pdf_file_path = "samples/Doc_2781.pdf"  # Replace with your actual PDF path
     process_pdf(pdf_file_path)

@@ -1,6 +1,8 @@
-from config import engine,users,employeeList,labReports,vitalResults,lipid_profile_results,glucose_results
-from sqlalchemy import select, and_ , func , case, or_
+from config import engine,users,metadata,employeeList,labReports,vitalResults,lipid_profile_results,glucose_results
+from sqlalchemy import select, and_ , func , case, or_ ,insert
+from sqlalchemy.exc import SQLAlchemyError
 from math import ceil
+from datetime import date
 from flask import request 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -168,6 +170,33 @@ def getemployeeDetails(ohc_id):
             result=conn.execute(stmt).fetchone()
             print(result)
     return result  
+def saveNewEmployee(form_data):
+    try:
+        # Convert date_of_birth if provided
+        if form_data['date_of_birth']:
+            form_data['date_of_birth'] = date.fromisoformat(form_data['date_of_birth'])
+        else:
+            form_data['date_of_birth'] = None
+
+        # Set ohc_id
+        form_data['ohc_id'] = form_data['employee_number']
+
+        # Convert last_visit_date if provided
+        if form_data['last_visit_date']:
+            form_data['last_visit_date'] = date.fromisoformat(form_data['last_visit_date'])
+        else:
+            form_data['last_visit_date'] = None
+
+        # Prepare and execute insert
+        stmt = insert(employeeList).values(form_data)
+        with engine.connect() as conn:
+            result = conn.execute(stmt)
+            conn.commit()
+            return result.rowcount  # return inside function
+
+    except SQLAlchemyError as e:
+        error_type = type(e).__name__ 
+        return error_type  # return 0 or False to indicate failure
 
 def convertLipidtoimage(lipiddata):
     df = pd.DataFrame(lipiddata)
@@ -267,3 +296,43 @@ def convertGlucosetoimage (glucose_data):
     buf.seek(0)
     image_base64 = base64.b64encode(buf.read()).decode('utf-8')  
     return  image_base64  
+
+def save_lab_reports_values(reportvalues,labreportsdata):
+    registration_id=labreportsdata.get('empid')
+    report_date=labreportsdata.get('report_date')
+    report_name=labreportsdata.get('report_name')    
+    report_table=metadata.tables[labreportsdata.get('table_name')]
+    
+    try:
+        with engine.begin() as conn:        
+            chk_stmt=check_data_exists(registration_id,report_date,report_name)
+            result_chk=conn.execute(chk_stmt).fetchone()
+            print(result_chk)
+            if not result_chk :
+                    report_stmt = insert(labReports).values(
+                    reportname=report_name,
+                    registration_id=registration_id,  
+                    file_path=labreportsdata.get('file_path'),                  
+                    report_date=date.fromisoformat(report_date)
+                    )
+                    result = conn.execute(report_stmt)
+                
+                    insert_report_id = result.inserted_primary_key[0]
+                    print(insert_report_id)
+                    reportvalues['report_id']=insert_report_id
+                    stmt2 = insert(report_table).values(reportvalues)        
+                    result = conn.execute(stmt2)  
+
+                    return "Data Saved"
+            else:
+                return "Data Already Exists for the selected Date"
+    except Exception as e:
+       return "Error occurred:"
+              
+    return 'dd'
+
+def check_data_exists(patientID,report_date,report_name):
+    
+    stmt=select(labReports).where((labReports.c.report_date==report_date) &(labReports.c.registration_id==patientID)
+                                   &(labReports.c.reportname==report_name))
+    return stmt

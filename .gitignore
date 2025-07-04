@@ -38,3 +38,5 @@ dist/
 
 # === Jupyter (if used) ===
 .ipynb_checkpoints/
+
+uploads/
