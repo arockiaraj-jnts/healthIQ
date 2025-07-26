@@ -48,6 +48,12 @@
                   data-id="lipid">
                   View Trend
                 </button>
+                <button class="btn btn-outline-primary btn-sm view-emp-btn"
+                  data-toggle="modal"
+                  data-target="#pdfModal"
+                  data-id="Lipid Profile">
+                  View Report
+                </button>
               <!-- <a href="/report/lipid/123" class="btn btn-outline-primary btn-sm">View Report</a> -->
             </div>
           </div>
@@ -61,8 +67,14 @@
                <p class="card-text"><strong>Employee:</strong> {{emp_name}}</p>
                <button class="btn btn-outline-primary btn-sm view-emp-btn"
                   data-toggle="modal"
-                  data-target="#pdfModal"
+                  data-target="#empModal"
                   data-id="thy">
+                  View Trend
+                </button>
+                <button class="btn btn-outline-primary btn-sm view-emp-btn"
+                  data-toggle="modal"
+                  data-target="#pdfModal"
+                  data-id="Thyroid Function Test">
                   View Report
                 </button>
             </div>
@@ -78,7 +90,7 @@
              <button class="btn btn-outline-primary btn-sm view-emp-btn"
                   data-toggle="modal"
                   data-target="#pdfModal"
-                  data-id="cbc">
+                  data-id="Complete Blood Count">
                   View Report
                 </button>
             </div>
@@ -94,7 +106,7 @@
               <button class="btn btn-outline-primary btn-sm view-emp-btn"
                   data-toggle="modal"
                   data-target="#pdfModal"
-                  data-id="stool">
+                  data-id="Stool Routine">
                   View Report
                 </button>
             </div>
@@ -110,7 +122,7 @@
               <button class="btn btn-outline-primary btn-sm view-emp-btn"
                   data-toggle="modal"
                   data-target="#pdfModal"
-                  data-id="urine">
+                  data-id="Urine Routine">
                   View Report
                 </button>
             </div>
@@ -128,6 +140,12 @@
                   data-target="#empModal"
                   data-id="glucose">
                   View Trend
+                </button>
+                <button class="btn btn-outline-primary btn-sm view-emp-btn"
+                  data-toggle="modal"
+                  data-target="#pdfModal"
+                  data-id="glucose fasting  postprandial">
+                  View Report
                 </button>
             </div>
           </div>
@@ -211,10 +229,10 @@
 
   pdfContainer.innerHTML = ''; // Clear previous
 
-  let pdfFiles = []; // 
+  //let pdfFiles = []; // 
 
   // Set based on empId
-  if (empId == 'urine') {
+ /* if (empId == 'urine') {
     pdfFiles = ['/static/samples/1652960012_38.pdf'];
   } else if (empId == 'stool') {
     pdfFiles = ['/static/samples/1652960012_37.pdf'];
@@ -226,18 +244,32 @@
     pdfFiles = ['/static/samples/1652960012_thy.pdf',
       '/static/samples/1652960012_thy2.pdf'
     ];
-  }
+  }*/
+    
+  fetch(`/get_employee_pdfreport/${empId}`)
+  .then(response => response.json()) 
+  .then(data => {
+    if (data.success) 
+    {
+        data.pdfs.forEach((pdf) => { //alert(pdf)
+          const iframe = document.createElement('iframe');
+          iframe.src = pdf;
+          iframe.width = "100%";
+          iframe.height = "400px";
+          iframe.style.border = "1px solid #ccc";
+          iframe.classList.add('mb-3');
+          pdfContainer.appendChild(iframe);
+        });
+    }
+    else
+     {
+        pdfContainer.innerHTML = '<p>No PDFs found.</p>';
+      }
+  })
+   
 
   // Now this works because pdfFiles is in scope
-  pdfFiles.forEach((pdf) => {
-    const iframe = document.createElement('iframe');
-    iframe.src = pdf;
-    iframe.width = "100%";
-    iframe.height = "400px";
-    iframe.style.border = "1px solid #ccc";
-    iframe.classList.add('mb-3');
-    pdfContainer.appendChild(iframe);
-  });
+  
 });
 </script>
 

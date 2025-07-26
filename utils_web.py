@@ -1,6 +1,7 @@
 import re,json
 import difflib
-from curd import saveStooldata,saveUrinedata,saveLipidProfileData,saveGlucoseData
+from curd_web import saveStooldata,saveUrinedata,saveCBCdata
+#,saveLipidProfileData,saveGlucoseData
 
 def getpatientInfo(ocr_text):
 
@@ -15,7 +16,7 @@ def getpatientInfo(ocr_text):
         return data
 
 
-def extract_urine_routine_data(ocr_text,report_name):
+def extract_urine_routine_data(ocr_text,report_name,output_save_path,empId,report_date):
     #data = {}
 
     # Extract patient metadata
@@ -68,10 +69,11 @@ def extract_urine_routine_data(ocr_text,report_name):
         "PatientInfo": data,
         "UrineTestResults": test_results
     }
-    saveUrinedata(report_name,data,test_results)
-    return json.dumps(output, indent=4)  
+    saveUrinedata(report_name,data,test_results,output_save_path,empId,report_date)
+    #return json.dumps(output, indent=4)  
+    return None
 
-def extract_stool_routine_data(ocr_text,report_name):  
+def extract_stool_routine_data(ocr_text,report_name,output_save_path,empId,report_date):  
     
     data = {}
     
@@ -132,8 +134,13 @@ def extract_stool_routine_data(ocr_text,report_name):
         "PatientInfo": data,
         "stoolTestResults": test_results
     }
-    saveStooldata(report_name,data,test_results)
-    return json.dumps(output, indent=4) 
+    saveStooldata(report_name,data,test_results,output_save_path,empId,report_date)
+    #return json.dumps(output, indent=4) 
+    return None
+def extract_CBC_data(ocr_text,report_name,output_save_path,empId,report_date):
+     saveCBCdata(report_name,output_save_path,empId,report_date)
+     #return json.dumps(output, indent=4) 
+     return None
 
 def extract_lipid_profile_data(ocr_text,report_name,output_pdf_path):  
     
@@ -277,7 +284,10 @@ def extract_glucose_data(ocr_text,report_name,output_pdf_path):
 def extract_thyroid_data(ocr_text,report_name,output_pdf_path):
     result = {}
     # Manually extract lines containing test data
-    pattern = re.compile(r'^(Total T3.*?|Total T4.*?|Ultrasensitive TSH.*?)[>:]\s*([><]?\s*\d+\.?\d*)')
+    #pattern = re.compile(r'^(Total T3.*?|Total T4.*?|Ultrasensitive TSH.*?)[>:]\s*([><]?\s*\d+\.?\d*)')
+    pattern = re.compile(
+    r'^(Total T3.*?|Total T4.*?|Ultrasensitive TSH.*?)[>:]?\s*([><]?\s*\d+[,.]?\d*)',
+    re.IGNORECASE)
     key_mapping = {
     "Total T3 (Tri-iodothyronine)": "total_T3_Tri_iodothyronine",
     "Total T4 (Thyroxine)": "total_T4_Thyroxine",
@@ -289,7 +299,7 @@ def extract_thyroid_data(ocr_text,report_name,output_pdf_path):
             original_key = match.group(1).strip()
             simplified_key = key_mapping.get(original_key, original_key)
             value = match.group(2).strip()
-            result[simplified_key] = value
+            result[simplified_key] = value.replace(',','.')
     result["output_pdf_path"]=output_pdf_path
     result["report_name"]=report_name
     # Print final dictionary

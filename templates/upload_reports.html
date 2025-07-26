@@ -43,6 +43,7 @@
                     <div class="col-md-6">
                         <div class="form-group">               
                             <input type="file" class="form-control-file" id="reportFile" name="report" accept=".pdf" >
+                            <input type="hidden" class="form-control" id="report_date2" name="report_date2" value=""> 
                         </div>
                     </div>
                      <div class="col-md-6">
@@ -103,7 +104,7 @@
           </div>         
           <div class="form-group col-md-4">
             <label>Total Cholesterol</label>
-            <input type="text" class="form-control" name="total_cholesterol" value="">
+            <input type="text" class="form-control" name="total_cholesterol" value="" onblur="UpdateVittalCH(this)">
           </div>
           <div class="form-group col-md-4">
             <label>HDL Cholesterol</label>
@@ -137,11 +138,11 @@
         <div class="form-row">
           <div class="form-group col-md-3">
             <label>Fasting</label>
-            <input type="text" class="form-control" name="fasting_blood_glucose" value="">
+            <input type="text" class="form-control" name="fasting_blood_glucose" value="" onblur="UpdateVittalGF(this)">
           </div>
           <div class="form-group col-md-3">
             <label>Post prandial</label>
-            <input type="text" class="form-control" name="post_prandial_blood_glucose" value="">
+            <input type="text" class="form-control" name="post_prandial_blood_glucose" onblur="UpdateVittalGPP(this)">
           </div>
           <div class="form-group col-md-3">
             <label>Urine Sugar Fasting</label>
@@ -177,7 +178,7 @@
           </div>
           <div class="form-group col-md-4">
             <label>Ultrasensitive TSH,Serum</label>
-            <input type="text" class="form-control" name="ultrasensitive_TSH_serum" value="">
+            <input type="text" class="form-control" name="ultrasensitive_TSH_serum" value="1.90">
           </div>
           <div class="form-group col-md-3">  
              <input type="hidden" class="form-control" name="file_path" value="uploads/040725150918.pdf">
@@ -197,26 +198,31 @@
         <div class="form-row">
           <div class="form-group col-md-4">
             <label>Post Prandial Sugar</label>
-            <input type="text" class="form-control" name="glucose_random" value="">
+            <input type="text" disabled class="form-control" name="glucose_random" id="glucose_random" value="">
           </div>
           <div class="form-group col-md-4">
             <label>Fasting Sugar</label>
-            <input type="text" class="form-control" name="glucose_fasting" value="">
+            <input type="text" disabled class="form-control" id="glucose_fasting" name="glucose_fasting" value="">
           </div>
           <div class="form-group col-md-4">
             <label>Total Cholesterol</label>
-            <input type="text" class="form-control" name="total_cholesterol" value="">
+            <input type="text" disabled class="form-control" id="total_cholesterol" name="total_cholesterol" value="">
           </div>
           <div class="form-group col-md-4">
-            <label>Weight</label>
-            <input type="text" class="form-control" name="weight" value="" required>
+            <label>Weight</label><small class="muted"> (in kg)</small>
+            <input type="text" class="form-control"  id="weight" name="weight" value="" required>
           </div>
-          <div class="form-group col-md-4">
+          <!--<div class="form-group col-md-4">
             <label>BMI</label>
             <input type="text" class="form-control" name="bmi" value="" required>
+          </div>-->
+          <div class="form-group col-md-4">
+            <label>Height</label><small class="muted"> (in cm)</small>
+            <input type="text" class="form-control" name="height" id="height" value="" required>
           </div>
           <div class="form-group col-md-3">  
-             <input type="hidden" class="form-control" name="file_path" value="">
+             <!--<input type="hidden" class="form-control" name="file_path" value="">
+            <input type="hidden" class="form-control" name="bmi" value=""  id="bmi">-->
             <input type="hidden" class="form-control" name="report_name" value="Vital Results">          
              <input type="submit" class="btn btn-primary"  value="Save">
           </div>
@@ -236,10 +242,18 @@
 
 
 <script>
+    function getBMI()
+    {
+        let height=document.getElementById("height")
+        let weight=document.getElementById("weight")
+        let bmi=(weight*10000)/(height*height)
+        document.getElementById("bmi").value = bmi;
+    }
 
   //save lipid
    $('#lipid_save').on('submit', function (e) {
       //alert('raj')
+      
       e.preventDefault();
       let formData = {};
       $(this).serializeArray().forEach(function (field) {
@@ -311,14 +325,23 @@
    //save glucose
    $('#vittal_save').on('submit', function (e) {
       //alert('raj')
+      //getBMI()
       e.preventDefault();
+      //const form = document.getElementById("vittal_save");
+      //let formData = new FormData(form);
+      
       let formData = {};
       $(this).serializeArray().forEach(function (field) {
           formData[field.name] = field.value;
       });
+      //let height=formData['height']
+      //let weight=formData['weight']
+      
+      //formData['bmi']=Math.round(bmi)
       formData['table_name'] = 'vital_results'; 
       formData['empid'] = $('#empId').val(); 
       formData['report_date'] = $('#report_date').val(); 
+      //formData = addFirstToFormData(formData, "bmi", bmi);
       console.log(formData);  
       $.post('/save_reports', formData, function(response) {
         console.log(response);
@@ -340,6 +363,7 @@
   $('#verifyForm').on('submit', function (e) {
   e.preventDefault();
   const empId = $('#empId').val().trim();
+  
 
   if (empId === "") return;
     
@@ -367,6 +391,10 @@
   // Simulate file upload and OCR extract
   $('#uploadForm').on('submit', function (e) {
     e.preventDefault();
+    const empId = $('#empId').val().trim();
+    const report_date =$('#report_date').val().trim();
+    
+    //return
 
     let formData = new FormData();
     let fileInput = $('#reportFile')[0].files[0];
@@ -376,6 +404,8 @@
     }
 
   formData.append('report', fileInput);
+  formData.append('empId', empId);
+  formData.append('report_date', report_date);
     $('#loader').show();
     $.ajax({ 
         url: '/upload_employee_report',
@@ -398,7 +428,7 @@
                  $('#glucose input[name="file_path"]').val(glucoseData.output_pdf_path);                 
                  $('#thyroid input[name="total_T3_Tri_iodothyronine"]').val(thyroidData.total_T3_Tri_iodothyronine);
                  $('#thyroid input[name="total_T4_Thyroxine"]').val(thyroidData.total_T4_Thyroxine);
-                 $('#thyroid input[name="ultrasensitive_TSH_serum"]').val(thyroidData.ultrasensitive_TSH_serum);
+                 //$('#thyroid input[name="ultrasensitive_TSH_serum"]').val(thyroidData.ultrasensitive_TSH_serum);
                  $('#thyroid input[name="file_path"]').val(thyroidData.output_pdf_path); 
                  $('#lipid input[name="triglycerides"]').val(lipiddata.triglycerides);
                  $('#lipid input[name="total_cholesterol"]').val(lipiddata.total_cholesterol);
@@ -425,6 +455,42 @@
 
     $('#resultTabs').slideDown();  // Simulated result section
   });
+
+
+  function addFirstToFormData(formData, key, value) {
+    const newFormData = new FormData();
+    newFormData.append(key, value); // add the new value first
+
+    // Copy existing data
+    for (const [k, v] of formData.entries()) {
+        newFormData.append(k, v);
+    }
+
+    return newFormData;
+ }
+
+
+
+  function UpdateVittalCH(element)
+  {
+    //alert('hi')
+    var value=element.value
+    document.getElementById("total_cholesterol").value = value;
+  }
+  function UpdateVittalGF(element)
+  {
+    //alert('hi')
+    var value=element.value
+    document.getElementById("glucose_fasting").value = value;
+  }
+
+  function UpdateVittalGPP(element)
+  {
+    //alert('hi')
+    var value=element.value
+    document.getElementById("glucose_random").value = value;
+  }
+  
 </script>
 
 

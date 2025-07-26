@@ -1,10 +1,11 @@
 import pytesseract
 from pdf2image import convert_from_path
-from PIL import Image
+from PIL import Image,ImageFilter, ImageOps
 import os
+import platform
 from datetime import datetime
-from utils_web import extract_glucose_data,extract_thyroid_data,extract_lipid_profile_data
-def process_pdf(pdf_path,output_folder):
+from utils_web import extract_glucose_data,extract_thyroid_data,extract_lipid_profile_data,extract_urine_routine_data,extract_stool_routine_data,extract_CBC_data
+def process_pdf(empId,report_date,pdf_path,output_folder):
     print(f" Processing PDF: {pdf_path}")
     image_paths = convert_pdf_to_images(pdf_path,output_folder)
     all_extract_data=[]
@@ -15,11 +16,12 @@ def process_pdf(pdf_path,output_folder):
         image = Image.open(image_path).convert("RGB")
         output_path = datetime.now().strftime("%d%m%y%H%M%S")
         output_pdf_path = os.path.join(output_folder, f"{output_path}.pdf")
+        output_save_path =  f"{output_path}.pdf"
         image = Image.open(image_path).convert("RGB")
         image.save(output_pdf_path, "PDF")        
-        check_resolution(image_path)
+        check_resolution(image_path)        
         #check_for_hand_drawn_lines(image_path)
-        extract_data= extract_text_with_tesseract(image_path,output_pdf_path)
+        extract_data= extract_text_with_tesseract(image_path,output_save_path,empId,report_date)
         os.remove(image_path)  # Cleanup after processing
         all_extract_data.append(extract_data)
     print("*********")  
@@ -54,25 +56,35 @@ def check_resolution(image_path):
             return " Resolution is good for OCR.",True
 
 # === Step 3: OCR with Tesseract ===
-def extract_text_with_tesseract(image_path,output_pdf_path):
-    text = pytesseract.image_to_string(Image.open(image_path))
+def extract_text_with_tesseract(image_path,output_save_path,empId,report_date):
+    if platform.system() == 'Windows':
+        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    # Preprocess
+    image = Image.open(image_path).convert("L")
+    image = image.resize((image.width // 2, image.height // 2))
+    image = image.filter(ImageFilter.MedianFilter()) 
+    custom_config = r'--oem 3 --psm 6'   
+    text = pytesseract.image_to_string(Image.open(image_path), config=custom_config)
     print("\n OCR Result:")
     #print(text.strip())
     report_name=get_report_name(text.strip()).replace('&','')
     print(report_name)
     report_handlers = {
-    #"Urine Routine": lambda: extract_urine_routine_data(text.strip(), report_name),
-    #"Stool Routine": lambda: extract_stool_routine_data(text.strip(), report_name),
-    "Lipid Profile": lambda: extract_lipid_profile_data(text.strip(), report_name,output_pdf_path),
-    "glucose fasting  postprandial": lambda: extract_glucose_data(text.strip(), report_name,output_pdf_path),
-    "Thyroid Function Test": lambda: extract_thyroid_data(text.strip(), report_name,output_pdf_path),
+    "Urine Routine": lambda: extract_urine_routine_data(text.strip(), report_name,output_save_path,empId,report_date),
+    "Stool Routine": lambda: extract_stool_routine_data(text.strip(), report_name,output_save_path,empId,report_date),
+    "Lipid Profile": lambda: extract_lipid_profile_data(text.strip(), report_name,output_save_path),
+    "glucose fasting  postprandial": lambda: extract_glucose_data(text.strip(), report_name,output_save_path),
+    "Thyroid Function Test": lambda: extract_thyroid_data(text.strip(), report_name,output_save_path),
+    "Complete Blood Count": lambda: extract_CBC_data(text.strip(), report_name,output_save_path,empId,report_date),
     }
 
     json_output = report_handlers.get(report_name, lambda: {"error": "Unknown report"})()
+    #json_output =None
+    NoTrendReports=['Stool Routine','Urine Routine']
     
-    
-    print(json_output)  
-    return json_output
+    print(json_output) 
+    if report_name not in NoTrendReports:
+        return json_output
 
 def get_report_name(ocr_text):
     known_reports = [

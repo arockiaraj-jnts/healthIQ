@@ -33,12 +33,13 @@
         </tr>
       </thead>
       <tbody>
+        
         {% if employees  %}
         {% for emp in employees %}
         <tr>
           <td class="text-center">{{ (page - 1) * per_page + loop.index }}</td>
           <td><a class="text-dark text-decoration-none" href="{{url_for('emp_dashboard.emp_dashboard',ohc_id=emp.ohc_id)}}">{{ emp.employee_name }}</a> </td>
-          <td>{{ emp.employee_number }}</td>
+          <td>{{ emp.ohc_id }}</td>
           <td class="text-center">{{ emp.gender }}</td>
           <td class="text-center">{{ emp.date_of_birth }}</td>
           <td class="text-center">{{ emp.blood_group }}</td>

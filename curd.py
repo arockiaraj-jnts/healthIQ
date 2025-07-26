@@ -271,3 +271,70 @@ def saveGlucoseData(patientdata,parsed_data,report_name,expected_fields):
 
     except (SQLAlchemyError, DBAPIError) as e:
         print(" Transaction failed and was rolled back:", e) 
+
+
+def saveStooldata(report_name,parsed_data,test_results):
+      
+    lab_reports=metadata.tables["lab_reports"]
+    stoolReport=metadata.tables["stool_routine_results"]
+    try:
+     with engine.begin() as conn:       
+        
+        # Step 1: Insert metadata into lab_reports
+            registration_id=parsed_data.get("Registration Id"),
+            report_date=safe_parse_datetime(parsed_data.get("Collection Date/Time")).date()
+            chk_stmt=check_data_exists(registration_id,report_date,report_name)
+            result_chk=conn.execute(chk_stmt).fetchone() #check duplicate entry
+            if not result_chk :
+                    report_stmt = insert(lab_reports).values(
+                    reportname=report_name,
+                    registration_id=registration_id,
+                    registration_datetime=safe_parse_datetime(parsed_data.get("Registration Date/Time")),
+                    patient_name=parsed_data.get("Patient Name"),
+                    collection_datetime=safe_parse_datetime(parsed_data.get("Collection Date/Time")),
+                    reporting_datetime=safe_parse_datetime(parsed_data.get("Reporting Date/Time")),
+                    referred_by=parsed_data.get("Referred By"),
+                    age_sex=parsed_data.get("Age/Sex"),
+                    report_date=report_date
+                    )
+                    result = conn.execute(report_stmt)
+                
+                    insert_report_id = result.inserted_primary_key[0]           
+                    #conn.commit()
+                    print('A',insert_report_id)
+
+                    # Step 2: Insert stool results into stool_routine_results
+                    report_stmt = insert(stoolReport).values(
+                    report_id=insert_report_id,
+                    colour=test_results.get("Colour"),
+                    consistency=test_results.get("Consistency"),
+                    reaction=test_results.get("Reaction"),
+                    blood=test_results.get("Blood"),
+                    mucus=test_results.get("Mucus"),
+                    parasites=test_results.get("Parasites"),
+                    occult_blood=test_results.get("Occult Blood"),
+                    reducing_substances=test_results.get("Reducing Substances"),
+                    red_blood_cells=test_results.get("Red Blood Cells"),
+                    epithelial_cells=test_results.get("Epithelial Cells"),
+                    pus_cells=test_results.get("Pus Cells"),
+                    fungal_organisms=test_results.get("Fungal Organisms"),
+                    vegetable_fibres=test_results.get("Vegetable Fibres"),
+                    muscle_fibres=test_results.get("Muscle Fibres"),
+                    fat_globules=test_results.get("Fat Globules"),
+                    starch_granules=test_results.get("Starch Granules"),
+                    vegetative_forms=test_results.get("Vegetative forms"),
+                    cystic_forms=test_results.get("Cystic forms"),
+                    larvae=test_results.get("Larvae"),
+                    ova=test_results.get("Ova")
+
+                    )
+                    result = conn.execute(report_stmt)
+            else :
+                print("Duplicate rows")
+                        
+
+            
+
+    except (SQLAlchemyError, DBAPIError) as e:
+        print(" Transaction failed and was rolled back:", e) 
+

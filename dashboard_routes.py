@@ -7,9 +7,10 @@ import seaborn as sns
 import matplotlib.dates as mdates
 import io
 import base64
+import numpy as np
 PER_PAGE = 10  # Rows per page
 today=date.today()
-last_year=today.year-1
+last_year_firstdate=date(today.year-1,1,1)
 
 dashboard_bp=Blueprint('dashboard',__name__, url_prefix='/dashboard')
 @dashboard_bp.route('/')
@@ -19,7 +20,7 @@ def dashboard():
     search_query = request.args.get('q', '').strip()
     # Get current page from query string (default to 1)
     page = request.args.get('page', 1, type=int)
-    employeeDet,page,total_pages=getDashboardData(page,PER_PAGE,last_year,search_query)     
+    employeeDet,page,total_pages=getDashboardData(page,PER_PAGE,last_year_firstdate,today,search_query)     
     #if employeeDet:
     return render_template('dashboard.html',username=session['username'],
                                employees=employeeDet,page=page,total_pages=total_pages,per_page=PER_PAGE,request=request)
@@ -41,6 +42,8 @@ def emp_dashboard(ohc_id):
 
     # ✅ Convert report_date to datetime safely (supports datetime.date or str)
     df['report_date'] = pd.to_datetime(df['report_date'])
+    # Replace empty strings with NaN
+    df.replace('', np.nan, inplace=True)
 
     # ✅ Convert values to float (if needed)
     df['weight'] = df['weight'].astype(float)
@@ -58,18 +61,40 @@ def emp_dashboard(ohc_id):
     sns.lineplot(x='report_date', y='bmi', data=df, marker='o', label='BMI')
     sns.lineplot(x='report_date', y='glucose_random', data=df, marker='o', label='Glucose (Random)')
     sns.lineplot(x='report_date', y='total_cholesterol', data=df, marker='o', label='Cholesterol (mg/dl)')
+    for x, y in zip(df['report_date'], df['weight']):
+        plt.text(x, y, f'{y:.1f}', fontsize=10, ha='center', va='bottom')
+    for x, y in zip(df['report_date'], df['bmi']):
+        plt.text(x, y, f'{y:.1f}', fontsize=10, ha='center', va='bottom')
 
+    for x, y in zip(df['report_date'], df['glucose_random']):
+        plt.text(x, y, f'{y:.0f}', fontsize=10, ha='center', va='bottom')
+
+    for x, y in zip(df['report_date'], df['total_cholesterol']):
+        plt.text(x, y, f'{y:.0f}', fontsize=10, ha='center', va='bottom')    
     # ✅ Format X-axis as dd-mm-YYYY
     ax = plt.gca()
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
     ax.set_xticks(df['report_date'])  # show only actual dates
     plt.xticks(rotation=45)
+    
+
 
     # ✅ Chart formatting
     plt.title("Trend of Weight, BMI,  Glucose (Random) and Cholesterol")
     plt.xlabel("Report Date")
     plt.ylabel("Values")
-    plt.legend()
+    #plt.legend()
+    #plt.tight_layout()
+
+    plt.legend(
+    bbox_to_anchor=(1.02, 1),   # x, y in axes fraction (1.02 = just outside right edge)
+    loc='upper left',           # anchor legend’s upper‐left corner at that point
+    borderaxespad=0 ,            # no extra padding
+    fontsize=8,                     # Smaller font
+    frameon=False,                  # Optional: remove legend box background
+    handlelength=2,                 # Shorter line length
+    handletextpad=0.5  
+    )
     plt.tight_layout()
 
     # ✅ Save image
